@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react';
 import { giftcardABI, giftcard } from '../const';
 
-const GiftCardRedeemComponent = () => {
+const GiftCardRedeemComponent = ({ contractAddress, contractABI }) => {
   const [provider, setProvider] = useState(null);
   const [contract, setContract] = useState(null);
   const [cardId, setCardId] = useState('');
@@ -24,7 +24,6 @@ const GiftCardRedeemComponent = () => {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [balance, setBalance] = useState(null);
 
   useEffect(() => {
     const initEthers = async () => {
@@ -35,7 +34,7 @@ const GiftCardRedeemComponent = () => {
           const newProvider = new ethers.providers.Web3Provider(ethereum);
           const signer = newProvider.getSigner();
 
-          const newContract = new ethers.Contract(giftcard, giftcardABI, signer);
+          const newContract = new ethers.Contract(contractAddress, contractABI, signer);
 
           setProvider(newProvider);
           setContract(newContract);
@@ -48,7 +47,7 @@ const GiftCardRedeemComponent = () => {
     };
 
     initEthers();
-  }, []);
+  }, [contractAddress, contractABI]);
 
   const redeemGiftCard = async () => {
     try {
@@ -72,29 +71,6 @@ const GiftCardRedeemComponent = () => {
       );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const checkGiftCardBalance = async () => {
-    try {
-      setError('');
-      setBalance(null);
-
-      // Validate card ID
-      if (!cardId) {
-        throw new Error('Please enter a valid card ID.');
-      }
-
-      // Call the getGiftCardBalanceAndStatus function on the contract
-      const [depositAmount, redeemed] = await contract.getGiftCardBalanceAndStatus(cardId);
-      setBalance(depositAmount);
-
-      console.log('Gift Card balance checked successfully:', depositAmount);
-    } catch (error) {
-      console.error('Error checking gift card balance:', error.message || error);
-      setError(
-        error.message || 'An error occurred while checking the gift card balance.'
-      );
     }
   };
 
@@ -140,19 +116,6 @@ const GiftCardRedeemComponent = () => {
           Redeem Gift Card
         </Button>
 
-        <FormControl mt="4">
-          <FormLabel>Check Gift Card Balance:</FormLabel>
-          <Button colorScheme="teal" onClick={checkGiftCardBalance}>
-            Check Balance
-          </Button>
-        </FormControl>
-
-        {balance !== null && (
-          <Box mt="4">
-            <Text>Gift Card Balance: {ethers.utils.formatEther(balance)} MIND</Text>
-          </Box>
-        )}
-
         {loading && (
           <Box mt="4" textAlign="center">
             <Spinner size="lg" color="teal.500" />
@@ -164,7 +127,6 @@ const GiftCardRedeemComponent = () => {
 };
 
 export default GiftCardRedeemComponent;
-
 
 
 // 0x55544b534a504d52
